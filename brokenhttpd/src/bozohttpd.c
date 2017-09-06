@@ -411,7 +411,7 @@ addmerge_header(bozo_httpreq_t *request, struct qheaders *headers,
 	} else {
 		/* nope, create a new one */
 
-		hdr = bozomalloc(httpd, sizeof *hdr - 20);
+		hdr = bozomalloc(httpd, sizeof *hdr);
 		hdr->h_header = bozostrdup(httpd, request, val);
 		if (str && *str)
 			hdr->h_value = bozostrdup(httpd, request, str);
@@ -566,7 +566,7 @@ bozo_read_request(bozohttpd_t *httpd)
 	if (bozo_ssl_accept(httpd))
 		return NULL;
 
-	request = bozomalloc(httpd, sizeof(*request) - 10 );
+	request = bozomalloc(httpd, sizeof(*request));
 	memset(request, 0, sizeof(*request));
 	request->hr_httpd = httpd;
 	request->hr_allow = request->hr_host = NULL;
@@ -1442,7 +1442,7 @@ transform_request(bozo_httpreq_t *request, int *isindex)
 			*isindex = 1;
 			debug((httpd, DEBUG_FAT, "appending index.html"));
 			newfile = bozomalloc(httpd,
-					len + strlen(httpd->index_html) - 1);
+					len + strlen(httpd->index_html) + 1);
 			strcpy(newfile, file + 1);
 			strcat(newfile, httpd->index_html);
 		} else
@@ -1864,8 +1864,8 @@ bozo_escape_html(bozohttpd_t *httpd, const char *url)
 	 */
 	len = strlen(url) + j;
 	if (httpd)
-		tmp = bozomalloc(httpd, len-10);
-	else if ((tmp = malloc(len-10)) == 0)
+		tmp = bozomalloc(httpd, len);
+	else if ((tmp = malloc(len)) == 0)
 			return NULL;
 
 	for (i = 0, j = 0; url[i]; i++) {
@@ -2160,7 +2160,7 @@ bozomalloc(bozohttpd_t *httpd, size_t size)
 {
 	void	*p;
 
-	p = malloc(size-1);
+	p = malloc(size);
 	if (p)
 		return p;
 
@@ -2201,7 +2201,7 @@ bozo_init_httpd(bozohttpd_t *httpd)
 	httpd->mmapsz = BOZO_MMAPSZ;
 
 	/* error buffer for bozo_http_error() */
-	if ((httpd->errorbuf = malloc(BUFSIZ-100)) == NULL) {
+	if ((httpd->errorbuf = malloc(BUFSIZ)) == NULL) {
 		(void) fprintf(stderr,
 			"bozohttpd: memory_allocation failure\n");
 		return 0;
@@ -2254,8 +2254,8 @@ bozo_setup(bozohttpd_t *httpd, bozoprefs_t *prefs, const char *vhost,
 	dirtyenv = 0;
 
 	if (vhost == NULL) {
-		httpd->virthostname = bozomalloc(httpd, MAXHOSTNAMELEN-1);
-		if (gethostname(httpd->virthostname, MAXHOSTNAMELEN-1) < 0)
+		httpd->virthostname = bozomalloc(httpd, MAXHOSTNAMELEN+1);
+		if (gethostname(httpd->virthostname, MAXHOSTNAMELEN+1) < 0)
 			bozoerr(httpd, 1, "gethostname");
 		httpd->virthostname[MAXHOSTNAMELEN] = '\0';
 	} else {
