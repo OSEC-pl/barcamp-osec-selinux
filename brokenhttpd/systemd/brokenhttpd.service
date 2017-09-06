@@ -1,0 +1,11 @@
+[Unit]
+Description=broken http server
+After=network.target remote-fs.target nss-lookup.target
+
+[Service]
+ExecStart=/opt/brokenhttpd/bozohttpd -bf -I 8080 -i '::' /webroot/
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target
+
