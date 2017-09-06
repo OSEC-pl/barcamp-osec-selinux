@@ -218,3 +218,8 @@ TSWLatexianTemp*
 
 # expex forward references with \gathertags
 *-tags.tex
+
+*.o
+*.d
+.depend
+bozohttpd
