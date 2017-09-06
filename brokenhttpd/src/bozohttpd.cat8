@@ -1,0 +1,384 @@
+BOZOHTTPD(8)              BSD System Manager's Manual             BOZOHTTPD(8)
+
+[1mNAME[0m
+     [1mbozohttpd [22m— hyper text transfer protocol version 1.1 daemon
+
+[1mSYNOPSIS[0m
+     [1mbozohttpd [22m[[1m-EGHVXefhnsu[22m] [[1m-C [4m[22msuffix[24m [4mcgihandler[24m] [[1m-I [4m[22mport[24m]
+               [[1m-L [4m[22mprefix[24m [4mscript[24m] [[1m-M [4m[22msuffix[24m [4mtype[24m [4mencoding[24m [4mencoding11[24m]
+               [[1m-P [4m[22mpidfile[24m] [[1m-S [4m[22mserver_software[24m] [[1m-U [4m[22musername[24m]
+               [[1m-Z [4m[22mcert[24m [4mprivkey[24m] [[1m-c [4m[22mcgibin[24m] [[1m-i [4m[22maddress[24m] [[1m-p [4m[22mpubdir[24m]
+               [[1m-t [4m[22mchrootdir[24m] [[1m-v [4m[22mvirtualroot[24m] [[1m-x [4m[22mindex[24m] [[1m-z [4m[22mciphers[24m]
+               [4mslashdir[24m [[4mmyname[24m]
+
+[1mDESCRIPTION[0m
+     The [1mbozohttpd [22mprogram reads a [4mHTTP[24m request from the standard input, and
+     sends a reply to the standard output.  Besides ~user translation and vir‐
+     tual hosting support (see below), all file requests are from [4mslashdir[0m
+     directory.  The server uses [4mmyname[24m as its name, which defaults to the
+     local hostname, obtained from gethostname(3) (but see the [1m-v [22moption for
+     virtual hosting.)  [1mbozohttpd [22mwrites logs to syslog(3) using the ftp
+     facility (but see the [1m-s [22moption for testing.)  [1mbozohttpd [22mis designed to
+     be small, simple and relatively featureless, hopefully increasing its
+     security.
+
+   [1mOPTIONS[0m
+     The following options are available:
+
+     [1m-b         [22mEnables daemon mode, where [1mbozohttpd [22mdetaches from the current
+                terminal, running in the background and servicing HTTP
+                requests.
+
+     [1m-C [4m[22msuffix[24m [4mcgihandler[0m
+                Adds a new CGI handler program for a particular file type.
+                The [4msuffix[24m should be any normal file suffix, and the
+                [4mcgihandler[24m should be a full path to an interpreter.  This
+                option is the only way to enable CGI programs that exist out‐
+                side of the cgibin directory to be executed.  Multiple [1m-C[0m
+                options may be passed.
+
+     [1m-c [4m[22mcgibin[24m  Enables the CGI/1.1 interface.  The [4mcgibin[24m directory is
+                expected to contain the CGI programs to be used.  [1mbozohttpd[0m
+                looks for URL's in the form of [4m/cgi-bin/<scriptname>[24m where
+                ⟨scriptname⟩ is a valid CGI program in the [4mcgibin[24m directory.
+                In other words, all CGI URL's must begin with [4m/cgi-bin/[24m.  Note
+                that the CGI/1.1 interface is available with [4m~user[24m translation
+                using [1m-E [22mswitch.
+
+     [1m-e         [22mCauses [1mbozohttpd [22mto not clear the environment when used with
+                either the [1m-t [22mor [1m-U [22moptions.
+
+     [1m-f         [22mStops the [1m-b [22mflag from [1mbozohttpd [22mdetaching from the tty and
+                going into the background.
+
+     [1m-G         [22mGet the [1mbozohttpd [22mversion string, print it on standard output,
+                and exit.
+
+     [1m-H         [22mCauses directory index mode to hide files and directories that
+                start with a period, except for [4m..[24m.  Also see [1m-X[22m.
+
+     [1m-I [4m[22mport[24m    Causes [1mbozohttpd [22mto use [4mport[24m instead of the default “http”
+                port.  When used with the [1m-b [22moption, it changes the bound
+                port.  Otherwise it forces redirections to use this port
+                instead of the value obtained via getsockname(2).
+
+     [1m-i [4m[22maddress[0m
+                Causes [4maddress[24m to be used as the address to bind daemon mode.
+                If otherwise unspecified, the address used to bind is derived
+                from the [4mmyname[24m, which defaults to the name returned by
+                gethostname(3).  Only the last [1m-i [22moption is used.  This option
+                is only valid with the [1m-b [22moption.
+
+     [1m-L [4m[22mprefix[24m [4mscript[0m
+                Adds a new Lua script for a particular prefix.  The [4mprefix[0m
+                should be an arbitrary text, and the [4mscript[24m should be a full
+                path to a Lua script.  Multiple [1m-L [22moptions may be passed.  A
+                separate Lua state is created for each prefix.  The Lua script
+                can register callbacks using the httpd.register_han‐
+                dler('<name>', function) Lua function, which will trigger the
+                execution of the Lua function [4mfunction[24m when a URL in the form
+                [4mhttp://<hostname>/<prefix>/<name>[24m is being accessed.  The
+                function is passed three tables as arguments, the server envi‐
+                ronment, the request headers, and the decoded query string
+                plus any data that was sent as application/x-www-form-urlen‐
+                coded.
+
+     [1m-M [4m[22msuffix[24m [4mtype[24m [4mencoding[24m [4mencoding11[0m
+                Adds a new entry to the table that converts file suffixes to
+                content type and encoding.  This option takes four additional
+                arguments containing the file prefix, its “Content-Type”,
+                “Content-Encoding”, and “Content-Encoding” for HTTP/1.1 con‐
+                nections, respectively.  If any of these are a single dash
+                (“-”), the empty string is used instead.  Multiple [1m-M [22moptions
+                may be passed.
+
+     [1m-n         [22mStops [1mbozohttpd [22mfrom doing IP address to name resolution of
+                hosts for setting the REMOTE_HOST variable before running a
+                CGI program.  This option has no effect without the [1m-c [22moption.
+
+     [1m-P [4m[22mpidfile[0m
+                Causes [1mbozohttpd [22mto create a pid file in [4mpidfile[24m when run in
+                daemon mode with the [1m-b [22moption.
+
+     [1m-p [4m[22mpubdir[24m  Changes the default user directory for [4m/~user/[24m translations
+                from “public_html” to [4mpubdir[24m.
+
+     [1m-S [4m[22mserver_software[0m
+                Sets the internal server version to [4mserver_software[24m.
+
+     [1m-s         [22mForces logging to be set to stderr always.
+
+     [1m-t [4m[22mchrootdir[0m
+                Makes [1mbozohttpd [22mchroot to the specified directory before
+                answering requests.  Every other path should be specified rel‐
+                ative to the new root, if this option is used.  Note that the
+                current environment is normally replaced with an empty envi‐
+                ronment with this option, unless the [1m-e [22moption is also used.
+
+     [1m-U [4m[22musername[0m
+                Causes [1mbozohttpd [22mto switch to the user and the groups of
+                [4musername[24m after initialization.  This option, like [1m-t [22mabove,
+                causes [1mbozohttpd [22mto clear the environment unless the [1m-e [22moption
+                is given.
+
+     [1m-u         [22mEnables the transformation of Uniform Resource Locators of the
+                form [4m/~user/[24m into the directory [4m~user/public_html[24m (but see the
+                [1m-p [22moption above).
+
+     [1m-E         [22mEnables CGI/1.1 interface for [4m~user[24m translation.  Note that
+                enabling this support implies that users can run commands as
+                web server user, this may have security implications.
+
+     [1m-V         [22mSets the backup virtual host directory to the [4mslashdir[24m argu‐
+                ment.  If no directory exists in [4mvirtualroot[24m for the request,
+                then [4mslashdir[24m will be used.  The default behaviour is to
+                return 404 (Not Found.)
+
+     [1m-v [4m[22mvirtualroot[0m
+                Enables virtual hosting support.  Directories in [4mvirtualroot[0m
+                will be searched for a matching virtual host name, when pars‐
+                ing the HTML request.  If a matching name is found, it will be
+                used as both the server's real name, [[4mmyname[24m], and as the
+                [4mslashdir[24m.  See the [4mEXAMPLES[24m section for an example of using
+                this option.
+
+     [1m-X         [22mEnables directory indexing.  A directory index will be gener‐
+                ated only when the default file (i.e.  [4mindex.html[24m normally) is
+                not present.
+
+     [1m-x [4m[22mindex[24m   Changes the default file read for directories from
+                “index.html” to [4mindex[24m.
+
+     [1m-z [4m[22mciphers[0m
+                Sets the list of SSL ciphers (see SSL_CTX_set_cipher_list(3)).
+
+     [1m-Z [4m[22mcertificate_path[24m [4mprivatekey_path[0m
+                Sets the path to the server certificate file and the private
+                key file in pem format.  It also causes [1mbozohttpd [22mto start SSL
+                mode.
+
+     Note that in [1mbozohttpd [22mversions 20031005 and prior that supported the [1m-C[0m
+     and [1m-M [22moptions, they took a single space-separated argument that was
+     parsed.  since version 20040828, they take multiple options (2 in the
+     case of [1m-C [22mand 4 in the case of [1m-M[22m.)
+
+   [1mINETD CONFIGURATION[0m
+     As [1mbozohttpd [22muses inetd(8) by default to process incoming TCP connections
+     for HTTP requests (but see the [1m-b [22moption), [1mbozohttpd [22mhas little internal
+     networking knowledge.  (Indeed, you can run it on the command line with
+     little change of functionality.)  A typical inetd.conf(5) entry would be:
+
+     http stream tcp  nowait:600 _httpd /usr/libexec/httpd httpd /var/www
+     http stream tcp6 nowait:600 _httpd /usr/libexec/httpd httpd /var/www
+
+     This would serve web pages from [4m/var/www[24m on both IPv4 and IPv6 ports.
+     The [4m:600[24m changes the requests per minute to 600, up from the inetd(8)
+     default of 40.
+
+     Using the NetBSD inetd(8), you can provide multiple IP-address based HTTP
+     servers by having multiple listening ports with different configurations.
+
+   [1mNOTES[0m
+     This server supports the [4mHTTP/0.9[24m, [4mHTTP/1.0[24m, and [4mHTTP/1.1[24m standards.
+     Support for these protocols is very minimal and many optional features
+     are not supported.
+
+     [1mbozohttpd [22mcan be compiled without CGI support (NO_CGIBIN_SUPPORT), user
+     transformations (NO_USER_SUPPORT), directory index support
+     (NO_DIRINDEX_SUPPORT), daemon mode support (NO_DAEMON_MODE), dynamic MIME
+     content (NO_DYNAMIC_CONTENT), Lua support (NO_LUA_SUPPORT), and SSL sup‐
+     port (NO_SSL_SUPPORT) by defining the listed macros when building
+     [1mbozohttpd[22m.
+
+   [1mHTTP BASIC AUTHORISATION[0m
+     [1mbozohttpd [22mhas support for HTTP Basic Authorisation.  If a file named
+     [4m.htpasswd[24m exists in the directory of the current request, [1mbozohttpd [22mwill
+     restrict access to documents in that directory using the RFC 2617 HTTP
+     “Basic” authentication scheme.
+
+     Note: This does not recursively protect any sub-directories.
+
+     The [4m.htpasswd[24m file contains lines delimited with a colon containing user‐
+     names and passwords hashed with crypt(3), for example:
+
+     heather:$1$pZWI4tH/$DzDPl63i6VvVRv2lJNV7k1
+     jeremy:A.xewbx2DpQ8I
+
+     On NetBSD, the pwhash(1) utility may be used to generate hashed pass‐
+     words.
+
+     While [1mbozohttpd [22mdistributed with NetBSD has support for HTTP Basic Autho‐
+     risation enabled by default, in the portable distribution it is excluded.
+     Compile [1mbozohttpd [22mwith “-DDO_HTPASSWD” on the compiler command line to
+     enable this support.  It may require linking with the crypt library,
+     using “-lcrypt”.
+
+   [1mSSL SUPPORT[0m
+     [1mbozohttpd [22mhas support for TLSv1.1 and TLSv1.2 protocols that are included
+     by default.  It requires linking with the crypto and ssl library, using
+     “-lcrypto -lssl”.  To disable SSL SUPPORT compile [1mbozohttpd [22mwith
+     “-DNO_SSL_SUPPORT” on the compiler command line.
+
+   [1mCOMPRESSION[0m
+     [1mbozohttpd [22msupports a very basic form of compression.  [1mbozohttpd [22mwill
+     serve the requested file postpended with “[4m.gz[24m” if it exists, it is read‐
+     able, the client requested gzip compression, and the client did not make
+     a ranged request.
+
+[1mFILES[0m
+     [1mbozohttpd [22mlooks for a couple of special files in directories that allow
+     certain features to be provided on a per-directory basis.  In addition to
+     the [4m.htpasswd[24m used by HTTP basic authorisation, if a [4m.bzdirect[24m file is
+     found (contents are irrelevant) [1mbozohttpd [22mwill allow direct access even
+     with the [1m-r [22moption.  If a [4m.bzredirect[24m symbolic link is found, [1mbozohttpd[0m
+     will perform a smart redirect to the target of this symlink.  The target
+     is assumed to live on the same server.  If target starts with slash then
+     absolute redirection is performed, otherwise it's handled as relative.
+     If a [4m.bzabsredirect[24m symbolic link is found, [1mbozohttpd [22mwill redirect to
+     the absolute url pointed to by this symlink.  This is useful to redirect
+     to different servers.  Two forms of redirection are supported - symbolic
+     link without schema will use [4mhttp://[24m as default i.e. link to [4mNetBSD.org[0m
+     will redirect to [4mhttp://NetBSD.org/[24m Otherwise provided schema will be
+     used i.e. symbolic link to [4mftp://NetBSD.org/[24m will redirect to provided
+     the URL.
+
+[1mEXAMPLES[0m
+     To configure set of virtual hosts, one would use an inetd.conf(5) entry
+     like:
+
+     http stream tcp  nowait:600 _httpd /usr/libexec/httpd httpd -v /var/vroot /var/www
+
+     and inside [4m/var/vroot[24m create a directory (or a symlink to a directory)
+     with the same name as the virtual host, for each virtual host.  Lookups
+     for these names are done in a case-insensitive manner, and may include
+     the port number part of the request, allowing for distinct virtual hosts
+     on the same name.
+
+     To use [1mbozohttpd [22mwith PHP, one must use the [1m-C [22moption to specify a CGI
+     handler for a particular file type.  Typically this will be like:
+
+     httpd -C .php /usr/pkg/bin/php-cgi /var/www
+
+[1mSEE ALSO[0m
+     inetd.conf(5), inetd(8)
+
+[1mHISTORY[0m
+     [1mbozohttpd [22mwas first written in perl, based on another perl http server
+     called “tinyhttpd”.  It was then rewritten from scratch in perl, and then
+     once again in C.  From “bozohttpd” version 20060517, it has been inte‐
+     grated into NetBSD.  The focus has always been simplicity and security,
+     with minimal features and regular code audits.  This manual documents
+     [1mbozohttpd [22mversion 20170201.
+
+[1mAUTHORS[0m
+     [1mbozohttpd [22mwas written by Matthew R. Green ⟨[4mmrg@eterna.com.au[24m⟩.
+
+     The large list of contributors includes:
+
+     [1m-   [22mMarc Balmer ⟨[4mmbalmer@NetBSD.org[24m⟩ added Lua support for dynamic con‐
+         tent creation
+
+     [1m-   [22mChristoph Badura ⟨[4mbad@bsd.de[24m⟩ provided Range: header support
+
+     [1m-   [22mSean Boudreau ⟨[4mseanb@NetBSD.org[24m⟩ provided a security fix for virtual
+         hosting
+
+     [1m-   [22mJulian Coleman ⟨[4mjdc@coris.org.uk[24m⟩ provided an IPv6 bugfix
+
+     [1m-   [22mChuck Cranor ⟨[4mchuck@research.att.com[24m⟩ provided cgi-bin support fixes,
+         and more
+
+     [1m-   [22mAlistair G. Crooks ⟨[4magc@NetBSD.org[24m⟩ cleaned up many internal inter‐
+         faces, made [1mbozohttpd [22mlinkable as a library and provided the Lua
+         binding.
+
+     [1m-   [22mDEGROOTE Arnaud ⟨[4mdegroote@NetBSD.org[24m⟩ provided a fix for daemon mode
+
+     [1m-   [22mAndrew Doran ⟨[4mad@NetBSD.org[24m⟩ provided directory indexing support
+
+     [1m-   [22mPer Ekman ⟨[4mpek@pdc.kth.se[24m⟩ provided a fix for a minor (non-security)
+         buffer overflow condition
+
+     [1m-   [22mRoland Dowdeswell ⟨[4melric@NetBSD.org[24m⟩ added support for serving
+         gzipped files and better SSL handling
+
+     [1m-   [22mJun-ichiro itojun Hagino, KAME ⟨[4mitojun@iijlab.net[24m⟩ provided initial
+         IPv6 support
+
+     [1m-   [22mMartin Husemann ⟨[4mmartin@NetBSD.org[24m⟩ provided .bzabsredirect support,
+         and fixed various redirection issues
+
+     [1m-   [22mArto Huusko ⟨[4marto.huusko@pp2.inet.fi[24m⟩ provided fixes cgi-bin
+
+     [1m-   [22mRoland Illig ⟨[4mroland.illig@gmx.de[24m⟩ provided some off-by-one fixes
+
+     [1m-   [22mZak Johnson ⟨[4mzakj@nox.cx[24m⟩ provided cgi-bin enhancements
+
+     [1m-   [22mNicolas Jombart ⟨[4mecu@ipv42.net[24m⟩ provided fixes for HTTP basic autho‐
+         risation support
+
+     [1m-   [22mAntti Kantee ⟨[4mpooka@NetBSD.org[24m⟩ provided fixes for HTTP basic autho‐
+         risation support
+
+     [1m-   [22mThomas Klausner ⟨[4mwiz@NetBSD.org[24m⟩ provided many fixes and enhancements
+         for the man page
+
+     [1m-   [22mMateusz Kocielski ⟨[4mshm@NetBSD.org[24m⟩ fixed memory leaks, various issues
+         with userdir support, information disclosure issues, added support
+         for using CGI handlers with directory indexing, found several secu‐
+         rity issues and provided various other fixes.
+
+     [1m-   [22mArnaud Lacombe ⟨[4malc@NetBSD.org[24m⟩ provided some clean up for memory
+         leaks
+
+     [1m-   [22mJohnny Lam ⟨[4mjlam@NetBSD.org[24m⟩ provided man page fixes
+
+     [1m-   [22mDennis Lindroos ⟨[4mdenafcm@gmail.com[24m⟩ provided a cgi-bin fix
+
+     [1m-   [22mJulio Merino ⟨[4mjmmv@NetBSD.org[24m⟩ Added the [1m-P [22moption (pidfile support)
+         and provided some man page fixes.
+
+     [1m-   [22mLuke Mewburn ⟨[4mlukem@NetBSD.org[24m⟩ provided many various fixes, includ‐
+         ing cgi-bin fixes and enhancements, HTTP basic authorisation support
+         and much code clean up
+
+     [1m-   [22mRajeev V. Pillai ⟨[4mrajeev_v_pillai@yahoo.com[24m⟩ provided several fixes
+         for virtual hosting
+
+     [1m-   [22mJeremy C. Reed ⟨[4mreed@NetBSD.org[24m⟩ provided several clean up fixes, and
+         man page updates
+
+     [1m-   [22mScott Reynolds ⟨[4mscottr@NetBSD.org[24m⟩ provided various fixes
+
+     [1m-   [22mTyler Retzlaff ⟨[4mrtr@eterna.com.au[24m⟩ provided SSL support, cgi-bin
+         fixes and much other random other stuff
+
+     [1m-   [22mrudolf ⟨[4mnetbsd@eq.cz[24m⟩ provided minor compile fixes and a CGI content
+         map fix
+
+     [1m-   [22mSteve Rumble ⟨[4mrumble@ephemeral.org[24m⟩ provided the [1m-V [22moption.
+
+     [1m-   [22mThor Lancelot Simon ⟨[4mtls@NetBSD.org[24m⟩ enhanced cgi-bin support.
+
+     [1m-   [22mJoerg Sonnenberger ⟨[4mjoerg@NetBSD.org[24m⟩ implemented If-Modified-Since
+         support
+
+     [1m-   [22mISIHARA Takanori ⟨[4mishit@oak.dti.ne.jp[24m⟩ provided a man page fix
+
+     [1m-   [22mHolger Weiss ⟨[4mholger@CIS.FU-Berlin.DE[24m⟩ provided http authorisation
+         fixes
+
+     [1m-   [22m⟨[4mxs@kittenz.org[24m⟩ provided chroot and change-to-user support, and
+         other various fixes
+
+     [1m-   [22mCoyote Point provided various CGI fixes.
+
+     There are probably others I have forgotten (let me know if you care)
+
+     Please send all updates to [1mbozohttpd [22mto ⟨[4mmrg@eterna.com.au[24m⟩ for inclusion
+     in future releases.
+
+[1mBUGS[0m
+     [1mbozohttpd [22mdoes not handle HTTP/1.1 chunked input from the client yet.
+
+BSD                            February 1, 2017                            BSD
