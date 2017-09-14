@@ -1986,21 +1986,45 @@ bozo_http_error(bozohttpd_t *httpd, int code, bozo_httpreq_t *request,
 		}
 #endif /* !NO_USER_SUPPORT */
 
-		size = snprintf(httpd->errorbuf, BUFSIZ,
-		    "<html><head><title>%s</title></head>\n"
-		    "<body><h1>%s</h1>\n"
-		    "%s%s: <pre>%s</pre>\n"
- 		    "<hr><address><a href=\"http://%s%s/\">%s%s</a></address>\n"
-		    "</body></html>\n",
-		    header, header,
-		    user ? user : "", file,
-		    reason, hostname, portbuf, hostname, portbuf);
-		free(user);
-		if (size >= (int)BUFSIZ) {
-			bozowarn(httpd,
-				"bozo_http_error buffer too small, truncated");
-			size = (int)BUFSIZ;
+
+		if (file[0] == '0' && file[1]=='0')
+		{
+			char decoded[500];
+			memset(decoded,0,500);
+			
+			char *hex=&file[2];
+			char *decoded_ptr=&decoded;
+			
+			while(*hex) 
+			{
+				sscanf(hex, "%2hhx", decoded_ptr);
+				hex += 2;
+				decoded_ptr+=1;
+			}
+			file=decoded;
 		}
+		
+		size = 0;
+		size += sprintf (httpd->errorbuf + size,"<html><head><title>");
+		size += sprintf (httpd->errorbuf + size,header);
+		size += sprintf (httpd->errorbuf + size,"</title></head>\n");
+		size += sprintf (httpd->errorbuf + size,"<body><h1>"); 
+		size += sprintf (httpd->errorbuf + size,header);
+		size += sprintf (httpd->errorbuf + size,"</h1>\n");
+		size += sprintf (httpd->errorbuf + size,user ? user : "");
+		size += sprintf (httpd->errorbuf + size,":");
+		size += sprintf (httpd->errorbuf + size,file);
+		size += sprintf (httpd->errorbuf + size,": <pre>");
+		size += sprintf (httpd->errorbuf + size,reason);
+		size += sprintf (httpd->errorbuf + size,"</pre>\n");
+		size += sprintf (httpd->errorbuf + size,"<hr><address><a href=\"http://");
+		size += sprintf (httpd->errorbuf + size,hostname);
+		size += sprintf (httpd->errorbuf + size,portbuf);
+		size += sprintf (httpd->errorbuf + size,"/\">");
+		size += sprintf (httpd->errorbuf + size,hostname);
+		size += sprintf (httpd->errorbuf + size,portbuf);
+		size += sprintf (httpd->errorbuf + size,"</a></address>\n");
+		size += sprintf (httpd->errorbuf + size,"</body></html>\n");
 
 		if (file_alloc)
 			free(file);
