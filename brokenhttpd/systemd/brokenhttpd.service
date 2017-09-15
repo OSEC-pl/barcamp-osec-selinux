@@ -3,7 +3,7 @@ Description=broken http server
 After=network.target remote-fs.target nss-lookup.target
 
 [Service]
-ExecStart=/opt/brokenhttpd/bozohttpd -bf -I 8080 -i '::' /webroot/
+ExecStart=/opt/brokenhttpd/bozohttpd -L app /webroot/app.lua -bf -I 8080 -i '::' /webroot/public
 KillMode=process
 
 [Install]
