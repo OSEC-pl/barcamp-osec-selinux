@@ -23,7 +23,7 @@
 # for setting CFLAGS relevant to your make, eg
 #   % make COPTS="-DDO_HTPASSWD"
 
-COPTS+=	-DDO_HTPASSWD
+COPTS+=	-DDO_HTPASSWD -fstack-protector
 PROG=	bozohttpd
 LINKS=	${BINDIR}/bozohttpd ${BINDIR}/httpd
 MAN=	bozohttpd.8
