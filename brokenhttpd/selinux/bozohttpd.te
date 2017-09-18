@@ -1,0 +1,25 @@
+policy_module(bozohttpd, 1.0.0)
+
+########################################
+#
+# Declarations
+#
+
+type bozohttpd_t;
+type bozohttpd_exec_t;
+init_daemon_domain(bozohttpd_t, bozohttpd_exec_t)
+
+permissive bozohttpd_t;
+
+########################################
+#
+# bozohttpd local policy
+#
+allow bozohttpd_t self:fifo_file rw_fifo_file_perms;
+allow bozohttpd_t self:unix_stream_socket create_stream_socket_perms;
+
+domain_use_interactive_fds(bozohttpd_t)
+
+files_read_etc_files(bozohttpd_t)
+
+miscfiles_read_localization(bozohttpd_t)
