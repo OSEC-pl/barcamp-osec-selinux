@@ -1,0 +1,40 @@
+
+## <summary>policy for bozohttpd</summary>
+
+########################################
+## <summary>
+##	Execute bozohttpd_exec_t in the bozohttpd domain.
+## </summary>
+## <param name="domain">
+## <summary>
+##	Domain allowed to transition.
+## </summary>
+## </param>
+#
+interface(`bozohttpd_domtrans',`
+	gen_require(`
+		type bozohttpd_t, bozohttpd_exec_t;
+	')
+
+	corecmd_search_bin($1)
+	domtrans_pattern($1, bozohttpd_exec_t, bozohttpd_t)
+')
+
+######################################
+## <summary>
+##	Execute bozohttpd in the caller domain.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`bozohttpd_exec',`
+	gen_require(`
+		type bozohttpd_exec_t;
+	')
+
+	corecmd_search_bin($1)
+	can_exec($1, bozohttpd_exec_t)
+')

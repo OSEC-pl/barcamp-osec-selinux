@@ -1,0 +1,41 @@
+policy_module(bozohttpd, 1.0.2)
+
+require {
+	class process { noatsecure rlimitinh siginh };
+	class tcp_socket { accept listen };
+}
+
+########################################
+#
+# Declarations
+#
+
+type bozohttpd_t;
+type bozohttpd_exec_t;
+init_daemon_domain(bozohttpd_t, bozohttpd_exec_t)
+
+# Uncomment if bozo is supposed to run in permissive, even if SELinux is working in enforcing mode
+#permissive bozohttpd_t;
+
+########################################
+#
+# bozohttpd local policy
+#
+files_read_etc_files(bozohttpd_t)
+miscfiles_read_localization(bozohttpd_t)
+
+corenet_tcp_bind_generic_node(bozohttpd_t)
+corenet_tcp_bind_http_cache_port(bozohttpd_t)
+logging_send_syslog_msg(bozohttpd_t)
+sysnet_read_config(bozohttpd_t)
+sysnet_dns_name_resolve(bozohttpd_t)
+
+# glibc's AT_SECURE is enforced, so ignore denial
+dontaudit init_t bozohttpd_t:process { noatsecure };
+
+# allow bozo to work with httpd_sys_content_t files, that is already used in policy for apache
+apache_read_sys_content(bozohttpd_t)
+
+allow bozohttpd_t self:tcp_socket { accept listen };
+#allow bozohttpd_t self:process ~{ ptrace setcurrent setexec setfscreate setrlimit execmem execstack execheap };
+
