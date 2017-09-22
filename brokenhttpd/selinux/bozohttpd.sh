@@ -45,7 +45,7 @@ make -f /usr/share/selinux/devel/Makefile bozohttpd.pp || exit
 # Generate a man page off the installed module
 sepolicy manpage -p . -d bozohttpd_t
 # Fixing the file context on /repo/barcamp-osec-selinux/brokenhttpd/selinux/bozohttpd
-/sbin/restorecon -F -R -v /repo/barcamp-osec-selinux/brokenhttpd/selinux/bozohttpd
+/sbin/restorecon -F -R -v /opt/brokenhttpd/bozohttpd
 # Generate a rpm package for the newly generated policy
 
 pwd=$(pwd)
