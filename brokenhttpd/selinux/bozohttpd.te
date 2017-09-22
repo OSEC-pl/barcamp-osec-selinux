@@ -1,11 +1,8 @@
-policy_module(bozohttpd, 1.0.1)
+policy_module(bozohttpd, 1.0.2)
 
 require {
 	class process { noatsecure rlimitinh siginh };
-	class unix_dgram_socket { connect create write };
-	class tcp_socket { accept bind create getattr listen read setopt write };
-	class udp_socket { connect create getattr read write };
-	class netlink_route_socket { bind create getattr getopt nlmsg_read read setopt write };
+	class tcp_socket { accept listen };
 }
 
 ########################################
@@ -17,32 +14,28 @@ type bozohttpd_t;
 type bozohttpd_exec_t;
 init_daemon_domain(bozohttpd_t, bozohttpd_exec_t)
 
+# Uncomment if bozo is supposed to run in permissive, even if SELinux is working in enforcing mode
 #permissive bozohttpd_t;
 
 ########################################
 #
 # bozohttpd local policy
 #
-allow bozohttpd_t self:fifo_file rw_fifo_file_perms;
-allow bozohttpd_t self:unix_stream_socket create_stream_socket_perms;
-
-domain_use_interactive_fds(bozohttpd_t)
-
 files_read_etc_files(bozohttpd_t)
-
 miscfiles_read_localization(bozohttpd_t)
 
-allow bozohttpd_t self:netlink_route_socket { bind create getattr getopt nlmsg_read read setopt write };
-allow bozohttpd_t self:tcp_socket { accept bind create getattr listen read setopt write };
-allow bozohttpd_t self:udp_socket { connect create getattr read write };
-allow bozohttpd_t self:unix_dgram_socket { connect create write };
-apache_read_sys_content(bozohttpd_t)
 corenet_tcp_bind_generic_node(bozohttpd_t)
 corenet_tcp_bind_http_cache_port(bozohttpd_t)
-kernel_dgram_send(bozohttpd_t)
-logging_create_devlog_dev(bozohttpd_t)
-logging_read_syslog_pid(bozohttpd_t)
+logging_send_syslog_msg(bozohttpd_t)
 sysnet_read_config(bozohttpd_t)
+sysnet_dns_name_resolve(bozohttpd_t)
 
+# glibc's AT_SECURE is enforced, so ignore denial
 dontaudit init_t bozohttpd_t:process { noatsecure };
+
+# allow bozo to work with httpd_sys_content_t files, that is already used in policy for apache
+apache_read_sys_content(bozohttpd_t)
+
+allow bozohttpd_t self:tcp_socket { accept listen };
+#allow bozohttpd_t self:process ~{ ptrace setcurrent setexec setfscreate setrlimit execmem execstack execheap };
 

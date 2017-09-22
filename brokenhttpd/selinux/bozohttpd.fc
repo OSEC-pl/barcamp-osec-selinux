@@ -1,1 +1,2 @@
 /opt/brokenhttpd/bozohttpd		--	gen_context(system_u:object_r:bozohttpd_exec_t,s0)
+/webroot(/.*)?		gen_context(system_u:object_r:httpd_sys_content_t,s0)
