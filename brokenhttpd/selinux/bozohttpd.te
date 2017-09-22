@@ -1,4 +1,12 @@
-policy_module(bozohttpd, 1.0.0)
+policy_module(bozohttpd, 1.0.1)
+
+require {
+	class process { noatsecure rlimitinh siginh };
+	class unix_dgram_socket { connect create write };
+	class tcp_socket { accept bind create getattr listen read setopt write };
+	class udp_socket { connect create getattr read write };
+	class netlink_route_socket { bind create getattr getopt nlmsg_read read setopt write };
+}
 
 ########################################
 #
@@ -9,7 +17,7 @@ type bozohttpd_t;
 type bozohttpd_exec_t;
 init_daemon_domain(bozohttpd_t, bozohttpd_exec_t)
 
-permissive bozohttpd_t;
+#permissive bozohttpd_t;
 
 ########################################
 #
@@ -23,3 +31,18 @@ domain_use_interactive_fds(bozohttpd_t)
 files_read_etc_files(bozohttpd_t)
 
 miscfiles_read_localization(bozohttpd_t)
+
+allow bozohttpd_t self:netlink_route_socket { bind create getattr getopt nlmsg_read read setopt write };
+allow bozohttpd_t self:tcp_socket { accept bind create getattr listen read setopt write };
+allow bozohttpd_t self:udp_socket { connect create getattr read write };
+allow bozohttpd_t self:unix_dgram_socket { connect create write };
+apache_read_sys_content(bozohttpd_t)
+corenet_tcp_bind_generic_node(bozohttpd_t)
+corenet_tcp_bind_http_cache_port(bozohttpd_t)
+kernel_dgram_send(bozohttpd_t)
+logging_create_devlog_dev(bozohttpd_t)
+logging_read_syslog_pid(bozohttpd_t)
+sysnet_read_config(bozohttpd_t)
+
+dontaudit init_t bozohttpd_t:process { noatsecure };
+
